@@ -41,7 +41,7 @@ Claude (Cloud) ─HTTPS─> Tailscale Funnel ─> 127.0.0.1:8080 (Caddy, Bearer-
 | `.env` | Geheimnisse (Yazio-Zugangsdaten, Bearer-Token) – nicht committen |
 | `garmin-mcp-server/` | Garmin-MCP-Server (`garmin_mcp_server.py`, `garmin_auth.py`, Dockerfile) |
 | `garmin-tokens/` | Garmin-OAuth-Tokens (`oauth1_token.json`, `oauth2_token.json`), gemountet nach `/root/.garminconnect` – nicht committen |
-| `yazio/` | Dockerfile des Yazio-MCP-Servers (Node) |
+| `yazio/` | Dockerfile des Yazio-MCP-Servers (Node; `yazio-mcp@0.0.14`, `supergateway@4.2.0` fest gepinnt) |
 
 `.gitignore`:
 ```
@@ -79,9 +79,11 @@ garmin-tokens/
    sudo tailscale funnel --bg 8080
    sudo tailscale funnel status
    ```
-8. **In Claude als Custom Connector eintragen** (Einstellungen -> Connectoren -> benutzerdefinierten Connector hinzufügen): je eine URL pro Server (siehe Architektur). Einstellungen im Dialog:
-   - Anmeldung: **keine Anmeldung** (kein OAuth).
-   - Authentifizierung: **Bearer Token**. Ins Feld kommt der Wert von `MCP_TOKEN` aus der `.env`, ohne `Bearer`-Präfix. Claude sendet ihn als `Authorization: Bearer <TOKEN>`, so wie es das Caddyfile prüft.
+8. **In Claude als Custom Connector eintragen** (Details: README, Schritt 9): *Customize → Connectors → Add custom connector*, je ein Connector pro Server (URL siehe Architektur).
+   - Authentication: **No sign-in** (kein OAuth).
+   - Request headers: `authorization` mit dem Wert `Bearer <TOKEN>`. Das `Bearer ` muss mit eingetragen werden, denn Claude sendet den Wert unverändert. Fehlt es, kommt `401`.
+   - Request headers ist laut Claude-Doku eine Beta und nicht in jedem Konto sichtbar.
+   - Auth-Einstellungen lassen sich nachträglich nicht ändern. Zum Ändern den Connector entfernen und neu anlegen.
 9. **Test:** `curl -i http://localhost:8080` -> `401`; in Claude Garmin `get_devices` und Yazio `get_user_goals` aufrufen.
 
 ## Betrieb
@@ -115,6 +117,7 @@ Autostart nach Stromausfall: `restart: unless-stopped` für alle Compose-Dienste
 6. **Yazio „needs reconnect“:** In den Claude-Connector-Einstellungen neu verbinden.
 7. **Garmin-Schlafzeiten** können um +2 Stunden verschoben geliefert werden (Zeitzonenfehler im Server); Auswertungen sollten das berücksichtigen.
 8. Ein kurzer „Error dialing …“-Fehler beim ersten Tool-Aufruf kommt vor; ein erneuter Versuch hilft meist.
+9. **Connector liefert 401, obwohl der Token stimmt:** Im Header-Wert fehlt `Bearer `. Connector entfernen und mit `Bearer <TOKEN>` neu anlegen.
 
 ## Tools
 
