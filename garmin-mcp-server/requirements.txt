@@ -1,0 +1,2 @@
+fastmcp==2.13.1
+garminconnect==0.2.34

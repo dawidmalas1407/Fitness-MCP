@@ -1,0 +1,33 @@
+services:
+  yazio:
+    build:
+      context: ./yazio
+      network: host
+    restart: unless-stopped
+    environment:
+      - YAZIO_USERNAME=${YAZIO_USERNAME}
+      - YAZIO_PASSWORD=${YAZIO_PASSWORD}
+      - TZ=Europe/Berlin
+
+  garmin:
+    build:
+      context: ./garmin-mcp-server
+      network: host
+    restart: unless-stopped
+    volumes:
+      - ./garmin-tokens:/root/.garminconnect
+    environment:
+      - TZ=Europe/Berlin
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"   # nur lokal; nach außen geht es über Tailscale Funnel
+    environment:
+      - MCP_TOKEN=${MCP_TOKEN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - yazio
+      - garmin

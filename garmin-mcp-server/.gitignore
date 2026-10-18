@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# IDE
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Credentials (NEVER commit)
+.garminconnect/
+credentials.json
+secrets.json
+*.pem
+*.key
+
+# Logs
+*.log

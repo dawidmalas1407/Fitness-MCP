@@ -1,0 +1,24 @@
+:8080 {
+log {
+output stdout
+format console
+}
+route {
+handle /.well-known/* {
+respond "Not found" 404
+}
+@unauth not header Authorization "Bearer {$MCP_TOKEN}"
+respond @unauth "Unauthorized" 401
+handle /yazio/* {
+reverse_proxy yazio:8001 {
+flush_interval -1
+}
+}
+handle_path /garmin/* {
+reverse_proxy garmin:8000 {
+flush_interval -1
+}
+}
+respond "Not found" 404
+}
+}
