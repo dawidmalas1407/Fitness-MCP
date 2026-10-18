@@ -178,14 +178,26 @@ Falls Tailscale Funnel noch nicht freigeschaltet ist, zeigt der Befehl einen Lin
 
 ### 9. In Claude einbinden
 
-Lege zwei Custom Connectors an:
+Lege in Claude unter *Einstellungen → Connectoren → Benutzerdefinierten Connector hinzufügen* zwei Connectoren an:
 
 | Connector | URL |
 |---|---|
 | Garmin | `https://<hostname>.<tailnet>/garmin/mcp` |
 | Yazio | `https://<hostname>.<tailnet>/yazio/mcp` |
 
-Beide brauchen den `MCP_TOKEN` aus der `.env`, der bei jeder Anfrage als `Authorization: Bearer <MCP_TOKEN>` mitgeschickt werden muss.
+Beide brauchen den `MCP_TOKEN` aus der `.env`. Er muss bei jeder Anfrage als Header `Authorization: Bearer <MCP_TOKEN>` mitgeschickt werden, denn so prüft ihn das `Caddyfile`. Es gibt folgende Möglichkeiten:
+
+- **Statischer Header (Beta):** Im Connector-Dialog gibt es den Abschnitt *Request headers*. Trag dort `Authorization: Bearer <MCP_TOKEN>` ein. Der Abschnitt erscheint nur in Organisationen, für die die Beta aktiv ist, und eintragen kann ihn nur der Owner der Organisation.
+- **OAuth 2.0:** Dafür müsste der Server selbst OAuth anbieten, etwa per Dynamic Client Registration. Das reine Token-Setup mit Caddy kann das nicht.
+- **Ohne Authentifizierung:** Technisch möglich, dann ist der Server aber für jeden offen, der die URL kennt. Nicht empfohlen.
+- **Token in der URL (`?token=…`):** Wird nicht unterstützt.
+
+Prüfe, dass die Server ohne Token wirklich gesperrt sind. Beide Aufrufe müssen `401` liefern:
+
+```bash
+curl -i http://localhost:8080/garmin/mcp
+curl -i http://localhost:8080/yazio/mcp
+```
 
 Für einen schnellen Funktionstest frage Claude nach deinen Garmin-Geräten (Tool `get_devices`) oder deinen Yazio-Zielen (Tool `get_user_goals`).
 
@@ -253,6 +265,8 @@ Bei einem Neuaufbau solltest du die alte Maschine vorher in der Tailscale-Admin-
 | Test vom Handy klappt, Claude erreicht den Server aber nicht | Wenn das Handy selbst im Tailnet ist, läuft der Test auch ohne Funnel. Prüfe deshalb `sudo tailscale funnel status` und in `logs caddy`, ob Anfragen von Claude ankommen. |
 | Erster Garmin-Aufruf liefert kurz „Error dialing …“ | Kommt gelegentlich vor, ein zweiter Versuch klappt meist. |
 | Garmin-Auth-Fehler | Tokens sind abgelaufen oder ungültig. Wiederhole Schritt 6 und führe dann `sudo docker compose restart garmin` aus. |
+| Im Caddy-Log stehen `401` für Anfragen von Claude | Der Pfad stimmt, aber der Token fehlt oder ist falsch. Prüfe den Header im Connector. Stehen gar keine Zeilen im Log, ist die URL falsch oder Funnel bzw. Netz sind down. |
+| Token womöglich geleakt | Erzeuge einen neuen `MCP_TOKEN` in `.env`, führe `sudo docker compose up -d` aus und passe den Header in beiden Connectoren an. |
 | Yazio meldet einen Login-Fehler | Prüfe die Zugangsdaten in `.env` und führe dann `sudo docker compose up -d yazio` aus. Eventuell musst du den Connector in Claude neu verbinden. |
 
 ### Bekannte Eigenheiten
