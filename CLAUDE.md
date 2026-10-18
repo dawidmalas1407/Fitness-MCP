@@ -79,12 +79,9 @@ garmin-tokens/
    sudo tailscale funnel --bg 8080
    sudo tailscale funnel status
    ```
-8. **In Claude als Custom Connector eintragen** (Einstellungen -> Connectoren -> benutzerdefinierten Connector hinzufügen): je eine URL pro Server (siehe Architektur). Für den Zugangsschutz gibt es laut Claude-Doku folgende Wege:
-   - **Statischer Header (Beta):** Im Dialog erscheint der Abschnitt „Request headers“; dort `Authorization: Bearer <TOKEN>` eintragen, passend zur Prüfung im Caddyfile. Nur in Organisationen sichtbar, für die die Beta aktiv ist; die Eintragung macht der Owner der Organisation.
-   - **OAuth 2.0:** Der Server müsste OAuth (z. B. Dynamic Client Registration) selbst anbieten; im Dialog können optional Client-ID und -Secret angegeben werden. Das leistet ein reines Caddy-Token-Setup nicht.
-   - **Ohne Authentifizierung:** möglich, dann aber ist der Server für jeden mit der URL offen – nicht empfohlen.
-   - **Token in der URL (`?token=…`):** laut Doku nicht vorgesehen.
-   Beim vorliegenden Setup wird der Zugriff per **Bearer-Token** geschützt (kein OAuth-Anmeldedialog).
+8. **In Claude als Custom Connector eintragen** (Einstellungen -> Connectoren -> benutzerdefinierten Connector hinzufügen): je eine URL pro Server (siehe Architektur). Einstellungen im Dialog:
+   - Anmeldung: **keine Anmeldung** (kein OAuth).
+   - Authentifizierung: **Bearer Token**. Ins Feld kommt der Wert von `MCP_TOKEN` aus der `.env`, ohne `Bearer`-Präfix. Claude sendet ihn als `Authorization: Bearer <TOKEN>`, so wie es das Caddyfile prüft.
 9. **Test:** `curl -i http://localhost:8080` -> `401`; in Claude Garmin `get_devices` und Yazio `get_user_goals` aufrufen.
 
 ## Betrieb

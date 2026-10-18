@@ -185,12 +185,14 @@ Lege in Claude unter *Einstellungen → Connectoren → Benutzerdefinierten Conn
 | Garmin | `https://<hostname>.<tailnet>/garmin/mcp` |
 | Yazio | `https://<hostname>.<tailnet>/yazio/mcp` |
 
-Beide brauchen den `MCP_TOKEN` aus der `.env`. Er muss bei jeder Anfrage als Header `Authorization: Bearer <MCP_TOKEN>` mitgeschickt werden, denn so prüft ihn das `Caddyfile`. Es gibt folgende Möglichkeiten:
+So trägst du jeden Connector ein:
 
-- **Statischer Header (Beta):** Im Connector-Dialog gibt es den Abschnitt *Request headers*. Trag dort `Authorization: Bearer <MCP_TOKEN>` ein. Der Abschnitt erscheint nur in Organisationen, für die die Beta aktiv ist, und eintragen kann ihn nur der Owner der Organisation.
-- **OAuth 2.0:** Dafür müsste der Server selbst OAuth anbieten, etwa per Dynamic Client Registration. Das reine Token-Setup mit Caddy kann das nicht.
-- **Ohne Authentifizierung:** Technisch möglich, dann ist der Server aber für jeden offen, der die URL kennt. Nicht empfohlen.
-- **Token in der URL (`?token=…`):** Wird nicht unterstützt.
+1. Gib **Name** und **URL** aus der Tabelle oben ein.
+2. Wähle bei der Anmeldung **keine Anmeldung**, also kein OAuth.
+3. Wähle bei **Authentifizierung** die Option **Bearer Token**.
+4. Füge in das Token-Feld den Wert von `MCP_TOKEN` aus der `.env` ein. Gib nur den Token selbst ein, ohne das Wort `Bearer` davor, denn das ergänzt Claude.
+
+Claude schickt den Token dann bei jeder Anfrage als Header `Authorization: Bearer <MCP_TOKEN>`. Genau diesen Header prüft das `Caddyfile`.
 
 Prüfe, dass die Server ohne Token wirklich gesperrt sind. Beide Aufrufe müssen `401` liefern:
 
