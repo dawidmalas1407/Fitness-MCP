@@ -4,8 +4,8 @@ services:
       context: ./yazio
     restart: unless-stopped
     environment:
-      - YAZIO_USERNAME=${YAZIO_USERNAME}
-      - YAZIO_PASSWORD=${YAZIO_PASSWORD}
+      - YAZIO_USERNAME=${YAZIO_USERNAME:?YAZIO_USERNAME fehlt in .env}
+      - YAZIO_PASSWORD=${YAZIO_PASSWORD:?YAZIO_PASSWORD fehlt in .env}
       - TZ=Europe/Berlin
 
   garmin:
@@ -23,7 +23,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"   # nur lokal; nach außen geht es über Tailscale Funnel
     environment:
-      - MCP_TOKEN=${MCP_TOKEN}
+      - MCP_TOKEN=${MCP_TOKEN:?MCP_TOKEN fehlt in .env oder ist leer}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:

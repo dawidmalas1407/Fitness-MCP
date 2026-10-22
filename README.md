@@ -22,6 +22,46 @@ MCP-Client (Cloud) ─HTTPS─> Tailscale Funnel ─> 127.0.0.1:8080  Caddy (pr�
 
 > **Geheimnisse:** `.env` und `garmin-tokens/` gehören nie ins Repo und nie in einen Chat. Beide stehen in der `.gitignore`.
 
+### Was das Projekt macht
+
+Garmin- und Yazio-Daten liegen normalerweise nur in den jeweiligen Apps. Dieses Projekt macht sie für Claude abrufbar: Claude kann dann zum Beispiel deinen Schlaf, deine Herzfrequenz, Trainings und Body Battery von Garmin auswerten und mit deiner Ernährung aus Yazio zusammenbringen, etwa für eine tägliche Fitness- und Ernährungsübersicht.
+
+Dafür laufen auf einem Raspberry Pi drei Docker-Container:
+
+- **garmin**: MCP-Server für Garmin Connect, rund 34 Tools für Tagesdaten, Schlaf, Aktivitäten und Trends. Nur lesend.
+- **yazio**: MCP-Server für Yazio, Tools für Ziele, Tagesübersicht, Mahlzeiten, Wasser und Gewicht. Lesend, plus drei Schreib-Tools.
+- **caddy**: davorgeschalteter Webserver, der nur Anfragen mit dem richtigen Token durchlässt.
+
+Tailscale Funnel macht den Pi per HTTPS aus dem Internet erreichbar, ohne Portfreigabe im Router.
+
+### Verwendete Versionen
+
+Mit diesem Stand läuft das Projekt im Betrieb. Die Versionen der Server sind fest eingetragen, damit ein neues Release nicht unbemerkt etwas kaputt macht.
+
+| Komponente | Version | Festgelegt in |
+|---|---|---|
+| Hardware | Raspberry Pi 5 | — |
+| Betriebssystem | Raspberry Pi OS Lite (64-bit) | — |
+| Docker / Docker Compose | aktuell von get.docker.com, Compose v2 | — |
+| Caddy | `caddy:2`, neueste 2.x | `docker-compose.yml` |
+| Garmin-Server | [bmccarn/garmin-mcp-server](https://github.com/bmccarn/garmin-mcp-server), Stand Commit `6ab7296`, angepasstes Dockerfile | `garmin-mcp-server/` |
+| ↳ Python | `python:3.12-slim` | `garmin-mcp-server/Dockerfile` |
+| ↳ fastmcp | `2.13.1` | `garmin-mcp-server/requirements.txt` |
+| ↳ garminconnect | `0.2.34` (bewusst unter 0.3, siehe Garmin-README) | `garmin-mcp-server/requirements.txt` |
+| Yazio-Server | [`yazio-mcp`](https://www.npmjs.com/package/yazio-mcp) `0.0.14` | `yazio/Dockerfile` |
+| ↳ stdio-zu-HTTP-Brücke | [`supergateway`](https://www.npmjs.com/package/supergateway) `4.2.0` | `yazio/Dockerfile` |
+| ↳ Node.js | `node:20-slim` | `yazio/Dockerfile` |
+| Tunnel | Tailscale (aktuell vom Installationsskript), Funnel | — |
+
+Deine eigenen Versionen zeigst du auf dem Pi so an:
+
+```bash
+cat /etc/os-release | grep PRETTY
+sudo docker --version && sudo docker compose version
+tailscale version | head -1
+sudo docker compose exec caddy caddy version
+```
+
 ---
 
 ## Voraussetzungen
@@ -35,7 +75,7 @@ MCP-Client (Cloud) ─HTTPS─> Tailscale Funnel ─> 127.0.0.1:8080  Caddy (pr�
 
 | Schritt | Was | Woher | Wo es landet |
 |---|---|---|---|
-| 3 | GitHub-Login, nur bei privatem Repo | `gh auth login` oder Personal Access Token | in `gh` auf dem Pi |
+| 3 | GitHub-Login, nur bei einem privaten Fork | `gh auth login` oder Personal Access Token | in `gh` auf dem Pi |
 | 4 | **MCP-Token** (Bearer-Token) | **selbst erzeugt** mit `openssl rand -hex 32` | `.env` |
 | 4 | Yazio-E-Mail und -Passwort | dein normales Yazio-Konto | `.env` |
 | 6 | **Garmin-Tokens** | einmaliger Login mit Garmin-E-Mail, Passwort und ggf. SMS-Code über `garmin_auth.py` | `garmin-tokens/` |
@@ -93,16 +133,7 @@ git clone https://github.com/dawidmalas1407/fitness-mcp.git
 cd ~/fitness-mcp
 ```
 
-Ist das Repository **privat**, fragt `git` nach Benutzername und Passwort. Ein GitHub-Passwort funktioniert dort nicht. Am einfachsten meldest du dich vorher mit der GitHub-CLI an:
-
-```bash
-sudo apt install -y gh
-gh auth login          # GitHub.com → HTTPS → Login with a web browser
-gh repo clone dawidmalas1407/fitness-mcp ~/fitness-mcp
-cd ~/fitness-mcp
-```
-
-Alternativ legst du auf GitHub unter *Settings → Developer settings → Personal access tokens* einen Token mit Lesezugriff auf das Repository an und gibst ihn bei `git clone` als Passwort ein.
+Nutzt du einen privaten Fork, meldest du dich vorher mit `sudo apt install -y gh && gh auth login` an und klonst mit `gh repo clone <dein-name>/fitness-mcp ~/fitness-mcp`.
 
 ### 4. `.env` anlegen
 
@@ -120,6 +151,8 @@ YAZIO_USERNAME=deine-yazio-email@example.com
 YAZIO_PASSWORD=dein-yazio-passwort
 MCP_TOKEN=<die 64 Zeichen aus openssl rand>
 ```
+
+Fehlt einer der drei Werte oder ist er leer, bricht `docker compose` mit einer Meldung wie `MCP_TOKEN fehlt in .env oder ist leer` ab. Das ist Absicht: So kann der Stack nie versehentlich ohne Schutz laufen.
 
 Der `MCP_TOKEN` schützt beide Server. Wer ihn kennt, kann deine Gesundheitsdaten lesen und in Yazio Einträge anlegen. Behandle ihn deshalb wie ein Passwort.
 

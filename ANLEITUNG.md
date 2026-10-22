@@ -9,7 +9,7 @@ Die gezeigten Ausgaben sind sinngemäß. Versionsnummern, Zeiten und Namen sehen
 **Du brauchst:**
 - einen Raspberry Pi 4 oder 5 mit Netzteil und SD-Karte (mind. 16 GB), am besten mit LAN-Kabel
 - einen PC mit SD-Kartenleser
-- Konten bei Garmin Connect, Yazio, [Tailscale](https://tailscale.com/) (kostenlos), GitHub und Claude
+- Konten bei Garmin Connect, Yazio, [Tailscale](https://tailscale.com/) (kostenlos) und Claude
 
 ---
 
@@ -68,7 +68,7 @@ Kopier die Befehle einzeln hinein. In PowerShell fügst du mit **Rechtsklick** e
 
 ```bash
 sudo apt update && sudo apt full-upgrade -y
-sudo apt install -y git gh
+sudo apt install -y git
 curl -fsSL https://get.docker.com | sudo sh
 sudo systemctl enable --now docker
 ```
@@ -83,29 +83,12 @@ Du siehst `Docker Compose version v2.…`.
 
 ### 5. Projekt herunterladen
 
-Das Repository ist privat, deshalb meldest du dich zuerst bei GitHub an:
-
 ```bash
-gh auth login
-```
-
-Es kommen ein paar Fragen. Wähle mit den Pfeiltasten und Enter:
-
-| Frage | Antwort |
-|---|---|
-| Where do you use GitHub? | `GitHub.com` |
-| What is your preferred protocol for Git operations? | `HTTPS` |
-| Authenticate Git with your GitHub credentials? | `Yes` |
-| How would you like to authenticate GitHub CLI? | `Login with a web browser` |
-
-`gh` zeigt einen Code wie `ABCD-1234`. Öffne **am PC** <https://github.com/login/device>, gib den Code ein und bestätige. Im Terminal erscheint `✓ Logged in as …`.
-
-Dann holst du das Projekt:
-
-```bash
-gh repo clone dawidmalas1407/fitness-mcp ~/fitness-mcp
+git clone https://github.com/dawidmalas1407/fitness-mcp.git ~/fitness-mcp
 cd ~/fitness-mcp
 ```
+
+Du siehst `Cloning into '…/fitness-mcp'...` und danach `done.`.
 
 ---
 
@@ -142,7 +125,7 @@ Geh mit den Pfeiltasten hinter die `=` und trag ein:
 - `YAZIO_PASSWORD=` dein Yazio-Passwort
 - `MCP_TOKEN=` den kopierten Token, mit Rechtsklick einfügen
 
-Ohne Leerzeichen und ohne Anführungszeichen. Speichern: **Strg+O**, dann **Enter**. Beenden: **Strg+X**.
+Ohne Leerzeichen und ohne Anführungszeichen. Lässt du einen Wert leer, starten die Server später absichtlich nicht. Speichern: **Strg+O**, dann **Enter**. Beenden: **Strg+X**.
 
 > Diese Datei ist geheim. Zeig sie niemandem und füg sie nirgends ein.
 

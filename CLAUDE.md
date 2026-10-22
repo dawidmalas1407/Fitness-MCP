@@ -36,7 +36,7 @@ Claude (Cloud) ─HTTPS─> Tailscale Funnel ─> 127.0.0.1:8080 (Caddy, Bearer-
 
 | Pfad | Zweck |
 |---|---|
-| `docker-compose.yml` | Dienste `garmin`, `yazio`, `caddy` (`caddy:2`) |
+| `docker-compose.yml` | Dienste `garmin`, `yazio`, `caddy` (`caddy:2`). Bricht ab, wenn `MCP_TOKEN` oder die Yazio-Daten in `.env` fehlen oder leer sind |
 | `Caddyfile` | Routing und Bearer-Token-Prüfung |
 | `.env` | Geheimnisse (Yazio-Zugangsdaten, Bearer-Token) – nicht committen |
 | `garmin-mcp-server/` | Garmin-MCP-Server (`garmin_mcp_server.py`, `garmin_auth.py`, Dockerfile) |
