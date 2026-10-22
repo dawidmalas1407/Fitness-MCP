@@ -29,6 +29,19 @@ MCP-Client (Cloud) ─HTTPS─> Tailscale Funnel ─> 127.0.0.1:8080  Caddy (pr�
 - Ein kostenloses [Tailscale](https://tailscale.com/)-Konto
 - Am besten ein **LAN-Kabel**: Bei schwachem WLAN sind die Connectoren immer wieder unerreichbar (siehe [Fehlersuche](#fehlersuche)).
 
+### Welche Zugangsdaten du wann brauchst
+
+| Schritt | Was | Woher | Wo es landet |
+|---|---|---|---|
+| 3 | GitHub-Login, nur bei privatem Repo | `gh auth login` oder Personal Access Token | in `gh` auf dem Pi |
+| 4 | **MCP-Token** (Bearer-Token) | **selbst erzeugt** mit `openssl rand -hex 32` | `.env` |
+| 4 | Yazio-E-Mail und -Passwort | dein normales Yazio-Konto | `.env` |
+| 6 | **Garmin-Tokens** | einmaliger Login mit Garmin-E-Mail, Passwort und ggf. SMS-Code über `garmin_auth.py` | `garmin-tokens/` |
+| 8 | Tailscale-Anmeldung | Link aus `sudo tailscale up` im Browser öffnen | intern bei Tailscale |
+| 9 | derselbe MCP-Token | aus der `.env`, als `Bearer <MCP_TOKEN>` | in beiden Claude-Connectoren |
+
+Den MCP-Token stellt dir niemand aus. Du erzeugst ihn selbst, und Caddy und Claude kennen danach denselben Wert. Das Garmin-Passwort wird nirgends gespeichert, nur die Tokens, die etwa ein Jahr halten. Yazio meldet sich bei jedem Start selbst mit den Daten aus der `.env` an.
+
 In der Anleitung stehen Platzhalter:
 
 | Platzhalter | Bedeutung |
