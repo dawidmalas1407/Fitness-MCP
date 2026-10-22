@@ -2,6 +2,8 @@
 
 Selbst gehostete [MCP](https://modelcontextprotocol.io/)-Server für **Garmin Connect** und **Yazio**, gedacht für einen Raspberry Pi (oder jeden anderen Linux-Rechner mit Docker). Über einen Tailscale Funnel sind sie per HTTPS aus dem Internet erreichbar und lassen sich so als Custom Connectors in Claude (oder einem anderen MCP-Client) einbinden.
 
+> **Neu hier?** Die [Installationsanleitung für Einsteiger](ANLEITUNG.md) führt dich Klick für Klick durch die Einrichtung und zeigt bei jedem Schritt, was du sehen solltest. Diese README ist die technische Referenz.
+
 ```
 MCP-Client (Cloud) ─HTTPS─> Tailscale Funnel ─> 127.0.0.1:8080  Caddy (prüft Bearer-Token)
                                                   ├─ /garmin/* ─> garmin (fastmcp, :8000)
